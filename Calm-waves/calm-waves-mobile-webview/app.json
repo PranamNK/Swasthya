@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Calm Waves (WebView)",
+    "slug": "calm-waves-mobile-webview",
+    "scheme": "calmwaves",
+    "platforms": ["ios", "android"],
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#5ba3d9"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
+
