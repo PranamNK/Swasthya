@@ -15,7 +15,7 @@
     "express": "^4.19.2",
     "firebase-admin": "^12.1.0",
     "mongoose": "^9.6.2",
-    "shared-types": "workspace:*"
+    "twilio": "^4.10.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
