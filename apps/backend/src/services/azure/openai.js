@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { env } = require('../../../config/env');
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+const GEMMA_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemma-2.5-pro:generateContent';
 
 const DEFAULT_SYSTEM_PROMPT = 
   "You are Swasthya, a warm and empathetic voice assistant for mental wellbeing support. " +
@@ -12,15 +12,14 @@ const DEFAULT_SYSTEM_PROMPT =
   "gently encourage them to contact emergency services or a trusted person. " +
   "Output ONLY your spoken reply, nothing else.";
 
-const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 2000;
+const MAX_RETRIES = 0;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-class GeminiService {
+class GemmaService {
   getApiKey() {
-    const apiKey = env.gemini?.key || process.env.GEMINI_API_KEY;
+    const apiKey = env.gemma?.key || env.gemini?.key || process.env.GEMMA_API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      throw new Error("Missing GEMINI_API_KEY environment variable.");
+      throw new Error("Missing GEMMA_API_KEY or GEMINI_API_KEY environment variable.");
     }
     return apiKey;
   }
@@ -47,12 +46,12 @@ class GeminiService {
     }
 
     let lastError;
-    const modelToUse = 'gemini-2.5-flash';
+    const modelToUse = 'gemini-2.5-flash-lite';
 
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
         if (attempt > 0) {
-          console.log(`Gemini retry attempt ${attempt}/${MAX_RETRIES} using model ${modelToUse}`);
+          console.log(`Gemma retry attempt ${attempt}/${MAX_RETRIES} using model ${modelToUse}`);
           await sleep(RETRY_DELAY_MS * attempt);
         }
 
@@ -64,7 +63,7 @@ class GeminiService {
 
         const rawText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (!rawText) {
-          throw new Error("Gemini returned an empty response.");
+          throw new Error("Gemma returned an empty response.");
         }
 
         return rawText.trim();
@@ -75,7 +74,7 @@ class GeminiService {
         const errMsg = errData?.error?.message || err.message || '';
 
         console.error(
-          `Gemini request failed (attempt ${attempt + 1}): status=${status}, message=${errMsg.slice(0, 300)}`
+          `Gemma request failed (attempt ${attempt + 1}): status=${status}, message=${errMsg.slice(0, 300)}`
         );
 
         // 429 Quota Self-Healing: Parse exact lock window remaining and sleep dynamically if short!
@@ -86,12 +85,12 @@ class GeminiService {
             const sleepMs = Math.ceil((waitSeconds * 1000) + 750); // wait exact time + 750ms safe buffer
             
             if (sleepMs <= 6500) {
-              console.warn(`[RATE_LIMIT] ⚠️ Gemini rate limited. Sleep of ${sleepMs}ms is short enough. Sleeping to clear rate limit dynamically...`);
+              console.warn(`[RATE_LIMIT] ⚠️ Gemma rate limited. Sleep of ${sleepMs}ms is short enough. Sleeping to clear rate limit dynamically...`);
               await sleep(sleepMs);
               attempt = 0; // Reset attempts to try immediately after wait window
               continue;
             } else {
-              console.warn(`[RATE_LIMIT] ⚠️ Gemini rate limit sleep of ${sleepMs}ms is too long for Twilio (max 6.5s). Throwing immediately to trigger polite retry prompt.`);
+              console.warn(`[RATE_LIMIT] ⚠️ Gemma rate limit sleep of ${sleepMs}ms is too long for Twilio (max 6.5s). Throwing immediately to trigger polite retry prompt.`);
               throw err;
             }
           }
@@ -107,7 +106,7 @@ class GeminiService {
   }
 
   async generateReply(userText, history = [], language = 'en') {
-    // Map standard history array [{role, content}] to Gemini's format [{role, parts: [{text}]}]
+    // Map standard history array [{role, content}] to Gemma's format [{role, parts: [{text}]}]
     const contents = Array.isArray(history) ? history.map(msg => ({
       role: msg.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: msg.content || '' }]
@@ -175,7 +174,42 @@ Transcript: "${text}"
       };
     }
   }
+
+  async summarizeHealthMetrics(metrics) {
+    const prompt = `
+You are a clinical behavioral and physiological analyst. Given the user's recent health metrics and behavioral signals, produce a concise JSON summary for a mobile dashboard. Return ONLY a raw JSON object with exactly these keys:
+{
+  "summaryText": "<one concise sentence summarizing the user's current state in non-technical language>",
+  "severityScore": <Number between 0 and 1 where 0 is healthy and 1 indicates high concern>,
+  "recommendedAction": "<one short practical recommendation or next step for the user or clinician>"
+}
+
+Input (JSON): ${JSON.stringify(metrics)}
+Do not include any explanation or formatting. Keep values short and actionable.
+`;
+
+    const contents = [{ role: 'user', parts: [{ text: prompt }] }];
+
+    const content = await this.requestCompletion(contents, {
+      temperature: 0.0,
+      maxTokens: 300,
+      responseMimeType: 'application/json'
+    });
+
+    try {
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) return JSON.parse(jsonMatch[0]);
+      return JSON.parse(content);
+    } catch (e) {
+      console.error('Failed to parse health summary JSON:', content);
+      return {
+        summaryText: 'No summary available at this time.',
+        severityScore: 0.5,
+        recommendedAction: 'Continue monitoring and complete a micro-check-in.'
+      };
+    }
+  }
 }
 
 // Keep the same export name as the routes expect `openaiService` variable
-module.exports = new GeminiService();
+module.exports = new GemmaService();

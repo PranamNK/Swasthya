@@ -49,13 +49,9 @@ export default function ProfileScreen() {
   const handleToggleLanguage = async () => {
     if (!user?._id) return;
     
-    // Cycle between en -> kn -> en (Hindi removed)
     let nextLang = 'en';
-    if (user.language === 'en' || !user.language) {
-      nextLang = 'kn';
-    } else if (user.language === 'kn') {
-      nextLang = 'en';
-    }
+    if (user.language === 'en' || !user.language) nextLang = 'kn';
+    else if (user.language === 'kn') nextLang = 'en';
 
     try {
       setLoading(true);
@@ -63,7 +59,6 @@ export default function ProfileScreen() {
         userId: user._id,
         language: nextLang
       });
-
       if (res.data.success) {
         setUser(res.data.user);
       }
@@ -82,31 +77,31 @@ export default function ProfileScreen() {
     Linking.openURL('tel:+19412063766');
   };
 
-
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#466736" />
+        <ActivityIndicator size="large" color="#E89AAE" />
       </View>
     );
   }
 
-  const name = user?.name || 'Aditi Sharma';
-  const displayId = user?._id ? `#SW-${user._id.slice(-4).toUpperCase()}` : '#SW-9921';
-
+  const name = user?.name ?? (user?.email ? user.email.split('@')[0] : 'Swasthya User');
+  const displayId = user?._id ? `SW-${user._id.slice(-4).toUpperCase()}` : 'SW-4OF1';
+  
   let displayLang = 'English';
-  if (user?.language === 'kn') displayLang = 'ಕನ್ನಡ (Kannada)';
+  if (user?.language === 'kn') displayLang = 'Kannada';
+  else if (user?.language === 'hi') displayLang = 'Hindi';
 
   return (
     <View style={styles.outerContainer}>
-      {/* Top App Bar */}
+      {/* Background Floral Accents */}
+      <MaterialIcons name="eco" size={180} color="#F9E3E8" style={[styles.bgLeaf, { top: -20, left: -60, transform: [{ rotate: '45deg' }] }]} />
+
+      {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerTitleContainer}>
-          <MaterialIcons name="spa" size={24} color="#466736" style={styles.logoIcon} />
-          <Text style={styles.headerTitle}>Swasthya</Text>
-        </View>
-        <TouchableOpacity style={styles.notificationButton}>
-          <MaterialIcons name="notifications" size={22} color="#466736" />
+        <Text style={styles.headerTitle}></Text>
+        <TouchableOpacity style={styles.iconButton}>
+          <MaterialIcons name="more-horiz" size={28} color="#2B2B2B" />
         </TouchableOpacity>
       </View>
 
@@ -115,21 +110,24 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* User Profile Section */}
+        {/* Profile Hero with Botanical Halo */}
         <View style={styles.profileHero}>
-          <View style={styles.avatarWrapper}>
-            <Image 
-              source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBuuuu9eyLgHvx2UJhuQc0sirjb_BshXi-DSnME96K4BuPU7Fg7vuZXSIsTbvBwmvsNLVFlArAOGUjCsPO5x0L9V2mMxhINVZwiA3CRj164HM4dwhdocOAkP7VLn-P6f4mXdGzP0MR-SNcimwfVllQQUqDfOJjf5oG15Q_dy4FTnaQmGSr5AVDsW48wWEzSszo6XiChwjDtdbOvFmVUIZNxU0OkRB7jhjK7tpNOPblm9P7VLGW73twpWA4BAdviUFS-6XdO7dgcor4d' }} 
-              style={styles.avatarImage} 
-            />
-            <View style={styles.verifiedBadge}>
-              <MaterialIcons name="verified" size={14} color="#fafaf3" />
+          <View style={styles.haloOuter}>
+            <View style={styles.haloInner}>
+              <Image
+                source={{ uri: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png' }}
+                style={styles.avatarImage}
+              />
             </View>
+            {/* Small decorative leaves around the halo */}
+            <MaterialIcons name="eco" size={32} color="#F6C7D2" style={[styles.haloLeaf, { top: -10, right: 0, transform: [{ rotate: '30deg' }] }]} />
+            <MaterialIcons name="eco" size={24} color="#EBCFC4" style={[styles.haloLeaf, { bottom: 10, left: -10, transform: [{ rotate: '-120deg' }] }]} />
           </View>
+          
           <Text style={styles.userName}>{name}</Text>
           <View style={styles.idBadge}>
-            <MaterialIcons name="badge" size={14} color="#375a80" style={styles.badgeIcon} />
-            <Text style={styles.idText}>Wellness Card ID: {displayId}</Text>
+            <Text style={styles.idText}>Wellness ID: {displayId}</Text>
+            <MaterialIcons name="content-copy" size={14} color="#7B7B7B" style={styles.badgeIcon} />
           </View>
         </View>
 
@@ -146,181 +144,101 @@ export default function ProfileScreen() {
             </View>
           </View>
           <TouchableOpacity style={styles.supportCallButton} onPress={handleCallASHA}>
-            <MaterialIcons name="call" size={20} color="#fafaf3" />
+            <MaterialIcons name="call" size={20} color="#E89AAE" />
           </TouchableOpacity>
         </View>
 
-        {/* Swasthya AI Voice Companion Widget */}
-        <View style={styles.aiVoiceCard}>
-          <View style={styles.aiVoiceTopRow}>
-            <View style={styles.aiVoiceLeft}>
-              <View style={styles.aiVoiceAvatarBg}>
-                <MaterialIcons name="settings-voice" size={22} color="#466736" />
-              </View>
-              <View style={styles.aiVoiceHeaderContainer}>
-                <Text style={styles.aiVoiceLabel}>AI VOICE BOT</Text>
-                <Text style={styles.aiVoiceName}>Swasthya Assistant</Text>
-              </View>
+        {/* AI Voice Assistant */}
+        <View style={[styles.supportCard, { marginTop: 16 }]}>
+          <View style={styles.supportLeft}>
+            <View style={styles.aiAvatar}>
+              <MaterialIcons name="psychology" size={24} color="#E89AAE" />
             </View>
-            <TouchableOpacity style={styles.aiVoiceCallButton} onPress={handleCallAI}>
-              <MaterialIcons name="call" size={20} color="#fafaf3" />
-            </TouchableOpacity>
-          </View>
-
-          <Text style={styles.aiVoiceDesc}>
-            {user?.language === 'kn' 
-              ? "ಕನ್ನಡದಲ್ಲಿ ಸಂಭಾಷಿಸಲು ಈ ಕರೆಯನ್ನು ಮಾಡಿ. ನಮ್ಮ ಕೃತಕ ಬುದ್ಧಿಮತ್ತೆ ಸಹಾಯಕರು ನಿಮಗೆ ಕನ್ನಡದಲ್ಲೇ ಉತ್ತರಿಸುತ್ತಾರೆ."
-              : user?.language === 'hi'
-              ? "हिंदी में बात करने के लिए इस नंबर पर कॉल करें। हमारा एआई सहायक आपसे हिंदी में बात करेगा।"
-              : "Dial to speak with our compassionate voice therapist. Real-time dynamic regional support active."}
-          </Text>
-
-          <View style={styles.aiVoiceFooterRow}>
-            <Text style={styles.aiVoiceActiveLanguageLabel}>
-              {user?.language === 'kn' ? 'ಸಕ್ರಿಯ ಭಾಷೆ:' : user?.language === 'hi' ? 'सक्रिय भाषा:' : 'Active Language:'}
-            </Text>
-            <TouchableOpacity style={styles.aiVoiceLangBadge} onPress={handleToggleLanguage}>
-              <MaterialIcons name="translate" size={14} color="#062100" style={styles.aiVoiceLangBadgeIcon} />
-              <Text style={styles.aiVoiceLangBadgeText}>
-                {user?.language === 'kn' ? 'ಕನ್ನಡ (ಕನ್ನಡ)' : user?.language === 'hi' ? 'हिंदी (Hindi)' : 'English'}
-              </Text>
-              <MaterialIcons name="swap-horiz" size={14} color="#062100" style={{ marginLeft: 4 }} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-
-        {/* Call History Bento */}
-        <View style={styles.historySection}>
-          <View style={styles.historyHeader}>
-            <Text style={styles.historyTitle}>Call History</Text>
-            <TouchableOpacity>
-              <Text style={styles.viewAllText}>View All</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.historyList}>
-            {/* Record 1 */}
-            <View style={styles.historyItem}>
-              <View style={styles.historyLeft}>
-                <View style={styles.historyIconBg}>
-                  <MaterialIcons name="waves" size={20} color="#466736" />
-                </View>
-                <View>
-                  <Text style={styles.historyDate}>Yesterday, 4:30 PM</Text>
-                  <Text style={styles.historyDuration}>12 min session</Text>
-                </View>
-              </View>
-              <View style={[styles.statusTag, { backgroundColor: '#c7eeb0' }]}>
-                <Text style={[styles.statusTagText, { color: '#062100' }]}>Peace</Text>
-              </View>
-            </View>
-
-            {/* Record 2 */}
-            <View style={styles.historyItem}>
-              <View style={styles.historyLeft}>
-                <View style={styles.historyIconBg}>
-                  <MaterialIcons name="chat-bubble" size={20} color="#3E6187" />
-                </View>
-                <View>
-                  <Text style={styles.historyDate}>Oct 24, 11:20 AM</Text>
-                  <Text style={styles.historyDuration}>5 min check-in</Text>
-                </View>
-              </View>
-              <View style={[styles.statusTag, { backgroundColor: '#cae7f8' }]}>
-                <Text style={[styles.statusTagText, { color: '#001e2b' }]}>Calm</Text>
-              </View>
-            </View>
-
-            {/* Record 3 */}
-            <View style={styles.historyItem}>
-              <View style={styles.historyLeft}>
-                <View style={styles.historyIconBg}>
-                  <MaterialIcons name="call" size={20} color="#375a80" />
-                </View>
-                <View>
-                  <Text style={styles.historyDate}>Oct 22, 6:15 PM</Text>
-                  <Text style={styles.historyDuration}>28 min consultation</Text>
-                </View>
-              </View>
-              <View style={[styles.statusTag, { backgroundColor: '#afd2fe' }]}>
-                <Text style={[styles.statusTagText, { color: '#001d36' }]}>Relief</Text>
-              </View>
+            <View>
+              <Text style={styles.supportLabel}>AI Voice Bot</Text>
+              <Text style={styles.supportName}>Swasthya Assistant</Text>
             </View>
           </View>
-        </View>
-
-        {/* Settings Rows */}
-        <View style={styles.settingsSection}>
-          <Text style={styles.historyTitle}>Settings</Text>
-          <View style={styles.settingsCard}>
-            {/* Notifications */}
-            <TouchableOpacity style={styles.settingsItem}>
-              <View style={styles.settingsItemLeft}>
-                <MaterialIcons name="notifications" size={22} color="#73796d" />
-                <Text style={styles.settingsItemText}>Notifications</Text>
-              </View>
-              <MaterialIcons name="chevron-right" size={20} color="#73796d" />
-            </TouchableOpacity>
-
-            {/* Language Toggle */}
-            <TouchableOpacity style={styles.settingsItem} onPress={handleToggleLanguage}>
-              <View style={styles.settingsItemLeft}>
-                <MaterialIcons name="language" size={22} color="#73796d" />
-                <Text style={styles.settingsItemText}>Language</Text>
-              </View>
-              <View style={styles.languageTextContainer}>
-                <Text style={styles.languageText}>{displayLang}</Text>
-                <MaterialIcons name="chevron-right" size={20} color="#466736" />
-              </View>
-            </TouchableOpacity>
-
-            {/* Privacy */}
-            <TouchableOpacity style={[styles.settingsItem, { borderBottomWidth: 0 }]}>
-              <View style={styles.settingsItemLeft}>
-                <MaterialIcons name="lock" size={22} color="#73796d" />
-                <Text style={styles.settingsItemText}>Privacy</Text>
-              </View>
-              <MaterialIcons name="chevron-right" size={20} color="#73796d" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Soft Logout Button */}
-        <View style={styles.logoutContainer}>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <MaterialIcons name="logout" size={20} color="#ba1a1a" />
-            <Text style={styles.logoutButtonText}>Logout</Text>
+          <TouchableOpacity style={styles.supportCallButton} onPress={handleCallAI}>
+            <MaterialIcons name="call" size={20} color="#E89AAE" />
           </TouchableOpacity>
-          <Text style={styles.versionText}>Swasthya Version 2.4.0 (Stable)</Text>
         </View>
+
+        {/* Settings List */}
+        <View style={styles.settingsGroup}>
+          <TouchableOpacity style={styles.settingsItem}>
+            <View style={styles.settingsItemLeft}>
+              <MaterialIcons name="person-outline" size={24} color="#7B7B7B" style={styles.settingsIcon} />
+              <Text style={styles.settingsText}>Personal Information</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color="#7B7B7B" />
+          </TouchableOpacity>
+
+          <View style={styles.separator} />
+
+          <TouchableOpacity style={styles.settingsItem} onPress={handleToggleLanguage}>
+            <View style={styles.settingsItemLeft}>
+              <MaterialIcons name="language" size={24} color="#7B7B7B" style={styles.settingsIcon} />
+              <Text style={styles.settingsText}>Language</Text>
+            </View>
+            <View style={styles.settingsItemRight}>
+              <Text style={styles.settingsValue}>{displayLang}</Text>
+              <MaterialIcons name="chevron-right" size={24} color="#E89AAE" />
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.separator} />
+
+          <TouchableOpacity style={styles.settingsItem}>
+            <View style={styles.settingsItemLeft}>
+              <MaterialIcons name="lock-outline" size={24} color="#7B7B7B" style={styles.settingsIcon} />
+              <Text style={styles.settingsText}>Privacy & Security</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color="#7B7B7B" />
+          </TouchableOpacity>
+
+          <View style={styles.separator} />
+
+          <TouchableOpacity style={styles.settingsItem}>
+            <View style={styles.settingsItemLeft}>
+              <MaterialIcons name="notifications-none" size={24} color="#7B7B7B" style={styles.settingsIcon} />
+              <Text style={styles.settingsText}>Notifications</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color="#7B7B7B" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Logout */}
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
+
       </ScrollView>
 
-      {/* Bottom Navigation Bar */}
-      <View style={styles.bottomNav}>
-        {/* Analytics */}
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/calm-wave-home')}>
-          <MaterialIcons name="analytics" size={24} color="#79747E" />
-          <Text style={styles.navText}>Analytics</Text>
-        </TouchableOpacity>
-
-        {/* Calm Waves */}
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/breathing-tools')}>
-          <MaterialIcons name="waves" size={24} color="#79747E" />
-          <Text style={styles.navText}>Calm Waves</Text>
-        </TouchableOpacity>
-
-        {/* Chat */}
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/swasthya-chat')}>
-          <MaterialIcons name="chat-bubble" size={24} color="#79747E" />
-          <Text style={styles.navText}>Chat</Text>
-        </TouchableOpacity>
-
-        {/* Profile (Active) */}
-        <TouchableOpacity style={[styles.navItem, styles.navItemActive]} onPress={() => {}}>
-          <MaterialIcons name="person" size={24} color="#062100" />
-          <Text style={[styles.navText, styles.navTextActive]}>Profile</Text>
-        </TouchableOpacity>
+      {/* Floating Bottom Nav */}
+      <View style={styles.bottomNavContainer}>
+        <View style={styles.bottomNav}>
+          <TouchableOpacity style={styles.navItem} onPress={() => router.push('/calm-wave-home')}>
+            <MaterialIcons name="home" size={26} color="#D9D9D9" />
+            <Text style={styles.navText}>Home</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => {}}>
+            <MaterialIcons name="bar-chart" size={26} color="#D9D9D9" />
+            <Text style={styles.navText}>Insights</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => router.push('/breathing-tools')}>
+            <MaterialIcons name="waves" size={26} color="#D9D9D9" />
+            <Text style={styles.navText}>Calm</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => router.push('/swasthya-chat')}>
+            <MaterialIcons name="chat-bubble-outline" size={26} color="#D9D9D9" />
+            <Text style={styles.navText}>Chat</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => {}}>
+            <MaterialIcons name="person-outline" size={26} color="#E89AAE" />
+            <Text style={[styles.navText, { color: '#E89AAE' }]}>Profile</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -329,119 +247,112 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#fafaf3',
+    backgroundColor: '#FFF7F8',
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#fafaf3',
+    backgroundColor: '#FFF7F8',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  bgLeaf: {
+    position: 'absolute',
+    opacity: 0.6,
+    zIndex: -1,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    height: 64,
     paddingHorizontal: 16,
-    backgroundColor: '#fafaf3',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(195, 200, 187, 0.2)',
+    paddingTop: 50,
+    paddingBottom: 20,
+    zIndex: 10,
   },
-  headerTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logoIcon: {
-    marginRight: 6,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#466736',
-  },
-  notificationButton: {
+  iconButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 18,
+    color: '#2B2B2B',
+    fontFamily: 'PlusJakartaSans-SemiBold',
   },
   container: {
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 100,
+    paddingHorizontal: 24,
+    paddingBottom: 120,
   },
   profileHero: {
     alignItems: 'center',
-    marginVertical: 16,
+    marginBottom: 40,
   },
-  avatarWrapper: {
-    position: 'relative',
-    marginBottom: 16,
-  },
-  avatarImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 4,
-    borderColor: '#c7eeb0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-  },
-  verifiedBadge: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#466736',
-    borderWidth: 2,
-    borderColor: '#ffffff',
+  haloOuter: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#F9E3E8',
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 20,
+    position: 'relative',
+  },
+  haloInner: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: '#FFFDFD',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#E89AAE',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  avatarImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  haloLeaf: {
+    position: 'absolute',
   },
   userName: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#1a1c18',
+    color: '#2B2B2B',
+    fontFamily: 'PlusJakartaSans-Bold',
+    marginBottom: 8,
   },
   idBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#d1e4ff',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 99,
-    marginTop: 8,
-  },
-  badgeIcon: {
-    marginRight: 6,
   },
   idText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#001d36',
+    color: '#7B7B7B',
+    fontFamily: 'PlusJakartaSans-Medium',
+  },
+  badgeIcon: {
+    marginLeft: 6,
   },
   supportCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    borderRadius: 16,
-    padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(195, 200, 187, 0.2)',
+    backgroundColor: '#FFFDFD',
+    borderRadius: 24,
+    padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,
-    shadowRadius: 6,
+    shadowRadius: 10,
     elevation: 1,
+    marginBottom: 32,
   },
   supportLeft: {
     flexDirection: 'row',
@@ -452,307 +363,115 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     marginRight: 16,
-    backgroundColor: '#e8e9e2',
+  },
+  aiAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F9E3E8',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
   },
   supportLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#73796d',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    fontSize: 11,
+    color: '#7B7B7B',
+    fontFamily: 'PlusJakartaSans-Medium',
+    marginBottom: 2,
   },
   supportName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1a1c18',
-    marginTop: 2,
+    fontSize: 15,
+    color: '#2B2B2B',
+    fontFamily: 'PlusJakartaSans-SemiBold',
   },
   supportCallButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#466736',
+    backgroundColor: '#F9E3E8',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#466736',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 2,
   },
-  aiVoiceCard: {
-    backgroundColor: '#eeeee7',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
-    borderWidth: 1.5,
-    borderColor: 'rgba(195, 200, 187, 0.4)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
-  },
-  aiVoiceTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  aiVoiceLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  aiVoiceAvatarBg: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#c7eeb0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 14,
-  },
-  aiVoiceHeaderContainer: {
-    flexDirection: 'column',
-  },
-  aiVoiceLabel: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#466736',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-  },
-  aiVoiceName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1a1c18',
-    marginTop: 1,
-  },
-  aiVoiceCallButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#466736',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#466736',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  aiVoiceDesc: {
-    fontSize: 12.5,
-    color: '#43483e',
-    lineHeight: 18,
-    marginHorizontal: 2,
-    marginBottom: 12,
-  },
-  aiVoiceFooterRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(195, 200, 187, 0.25)',
-    paddingTop: 10,
-    marginTop: 2,
-  },
-  aiVoiceActiveLanguageLabel: {
-    fontSize: 12,
-    color: '#73796d',
-    fontWeight: '500',
-    marginRight: 8,
-  },
-  aiVoiceLangBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#c7eeb0',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-  },
-  aiVoiceLangBadgeIcon: {
-    marginRight: 4,
-  },
-  aiVoiceLangBadgeText: {
-    fontSize: 11.5,
-    fontWeight: '700',
-    color: '#062100',
-  },
-  historySection: {
-    marginBottom: 20,
-  },
-  historyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    paddingHorizontal: 4,
-    marginBottom: 12,
-  },
-  historyTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#73796d',
-  },
-  viewAllText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#466736',
-  },
-  historyList: {
-    gap: 8,
-  },
-  historyItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#eeeee7',
-    padding: 14,
-    borderRadius: 16,
-  },
-  historyLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  historyIconBg: {
-    width: 38,
-    height: 38,
-    borderRadius: 8,
-    backgroundColor: '#ffffff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  historyDate: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1a1c18',
-  },
-  historyDuration: {
-    fontSize: 11,
-    color: '#73796d',
-    marginTop: 1,
-  },
-  statusTag: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 99,
-  },
-  statusTagText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  settingsSection: {
-    marginBottom: 24,
-  },
-  settingsCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    marginTop: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(195, 200, 187, 0.2)',
-    overflow: 'hidden',
+  settingsGroup: {
+    marginBottom: 40,
   },
   settingsItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(195, 200, 187, 0.2)',
+    paddingVertical: 16,
   },
   settingsItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
   },
-  settingsItemText: {
+  settingsIcon: {
+    marginRight: 16,
+  },
+  settingsText: {
     fontSize: 15,
-    fontWeight: '500',
-    color: '#1a1c18',
+    color: '#2B2B2B',
+    fontFamily: 'PlusJakartaSans-Medium',
   },
-  languageTextContainer: {
+  settingsItemRight: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  languageText: {
+  settingsValue: {
     fontSize: 14,
-    color: '#466736',
-    fontWeight: '500',
-    marginRight: 4,
+    color: '#E89AAE',
+    fontFamily: 'PlusJakartaSans-Medium',
+    marginRight: 8,
   },
-  logoutContainer: {
-    marginTop: 12,
-    alignItems: 'center',
+  separator: {
+    height: 1,
+    backgroundColor: 'rgba(235, 207, 196, 0.3)', // Warm Clay tint
   },
   logoutButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    alignSelf: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    backgroundColor: '#FFFDFD',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#F9E3E8',
+  },
+  logoutText: {
+    color: '#E89AAE',
+    fontSize: 14,
+    fontFamily: 'PlusJakartaSans-SemiBold',
+  },
+  bottomNavContainer: {
+    position: 'absolute',
+    bottom: 24,
+    left: 24,
+    right: 24,
     alignItems: 'center',
-    width: '100%',
-    paddingVertical: 14,
-    borderWidth: 1.5,
-    borderColor: 'rgba(186, 26, 26, 0.3)',
-    borderRadius: 12,
-    backgroundColor: 'transparent',
-    gap: 8,
-  },
-  logoutButtonText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#ba1a1a',
-  },
-  versionText: {
-    fontSize: 11,
-    color: 'rgba(115, 121, 109, 0.6)',
-    marginTop: 16,
   },
   bottomNav: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 72,
-    backgroundColor: '#f4f4ed',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(195, 200, 187, 0.3)',
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
+    backgroundColor: '#FFFDFD',
+    borderRadius: 40,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    justifyContent: 'space-between',
+    width: '100%',
+    shadowColor: '#E89AAE',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 25,
     elevation: 10,
-    zIndex: 99,
+    borderWidth: 1.5,
+    borderColor: '#E89AAE',
   },
   navItem: {
-    flexDirection: 'column',
     alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-  },
-  navItemActive: {
-    backgroundColor: '#c7eeb0',
-    borderRadius: 99,
-    paddingHorizontal: 18,
-    paddingVertical: 4,
-    transform: [{ scale: 0.95 }],
+    justifyContent: 'center',
   },
   navText: {
     fontSize: 10,
-    color: '#79747E',
-    marginTop: 2,
-    fontWeight: '500',
-  },
-  navTextActive: {
-    color: '#062100',
-    fontWeight: 'bold',
+    color: '#D9D9D9',
+    fontFamily: 'PlusJakartaSans-Medium',
+    marginTop: 6,
   },
 });

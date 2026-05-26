@@ -6,6 +6,7 @@ const User = require('../models/User');
 const IVRSignal = require('../models/IVRSignal');
 const CheckIn = require('../models/CheckIn');
 const HealthAggregate = require('../models/HealthAggregate');
+const DailyMetric = require('../models/DailyMetric');
 const twilioService = require('../services/twilioService');
 
 const SESSION_TTL_MS = 30 * 60 * 1000;
@@ -178,9 +179,9 @@ const handleVoiceSpeech = async (req, res) => {
   try {
     const history = session ? session.messages.slice() : [];
     
-    // Process Gemini voice reply immediately (low latency, saves rate limit resources for the caller)
+    // Process Gemma voice reply immediately (low latency, saves rate limit resources for the caller)
     const reply = await openaiService.generateReply(speechText, history, userLang);
-    console.log('[SPEECH] Gemini reply:', reply);
+    console.log('[SPEECH] Gemma reply:', reply);
     
     if (session) {
       updateSession(session, speechText, reply);
@@ -309,6 +310,7 @@ router.post('/users', async (req, res) => {
 router.post('/users/sync-fit', async (req, res) => {
   try {
     const { userId, steps, activeMins, sleepHours, sleepMins, heartRate } = req.body;
+    console.log('[DEBUG sync-fit] Mobile sent:', req.body);
     if (!userId) return res.status(400).json({ error: 'userId is required' });
 
     const user = await User.findById(userId);
@@ -321,9 +323,111 @@ router.post('/users/sync-fit', async (req, res) => {
     if (heartRate !== undefined) user.heartRate = heartRate;
 
     await user.save();
+    // Persist daily samples if provided
+    if (Array.isArray(req.body.dailySamples) && req.body.dailySamples.length > 0) {
+      try {
+        for (const sample of req.body.dailySamples) {
+          // Normalize sample date to UTC start-of-day to avoid timezone mismatches
+          const sampleDate = sample.date ? new Date(sample.date) : new Date();
+          const y = sampleDate.getUTCFullYear();
+          const m = sampleDate.getUTCMonth();
+          const d = sampleDate.getUTCDate();
+          const startOfDay = new Date(Date.UTC(y, m, d, 0, 0, 0, 0));
+          const endOfDay = new Date(Date.UTC(y, m, d, 23, 59, 59, 999));
+
+          console.log('[SYNC-FIT] incoming sample date:', sample.date, 'normalized startOfDay(UTC):', startOfDay.toISOString());
+
+          await DailyMetric.findOneAndUpdate(
+            { userId: user._id, date: { $gte: startOfDay, $lt: endOfDay } },
+            {
+              $set: {
+                userId: user._id,
+                date: startOfDay,
+                steps: sample.steps || 0,
+                activeMins: sample.activeMins || 0,
+                sleepHours: sample.sleepHours || 0,
+                sleepMins: sample.sleepMins || 0,
+                heartRate: sample.heartRate || user.heartRate
+              }
+            },
+            { upsert: true, setDefaultsOnInsert: true }
+          );
+        }
+      } catch (e) {
+        console.error('Failed to persist daily samples:', e.message || e);
+      }
+    }
     res.json({ success: true, user });
   } catch (error) {
     console.error('Sync fit error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET: return recent daily health history (default 7 days)
+router.get('/users/:userId/health-history', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const days = parseInt(req.query.days || '7', 10);
+    if (!userId) return res.status(400).json({ error: 'userId is required' });
+
+    // Use UTC cutoff to match stored UTC start-of-day values
+    const cutoff = new Date();
+    cutoff.setUTCDate(cutoff.getUTCDate() - (days - 1));
+    cutoff.setUTCHours(0,0,0,0);
+
+    console.log('[HEALTH-HISTORY] cutoff(UTC):', cutoff.toISOString());
+    const samples = await DailyMetric.find({ userId, date: { $gte: cutoff } }).sort({ date: 1 });
+    console.log('[HEALTH-HISTORY] returning samples:', samples.length);
+    res.json({ success: true, data: samples });
+  } catch (err) {
+    console.error('Health history error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET: per-day AI summary for a specific date (YYYY-MM-DD)
+router.get('/users/:userId/health-summary', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const dateParam = req.query.date;
+    if (!userId) return res.status(400).json({ error: 'userId is required' });
+    if (!dateParam) return res.status(400).json({ error: 'date is required in YYYY-MM-DD format' });
+
+    const targetDate = new Date(dateParam);
+    if (isNaN(targetDate.getTime())) return res.status(400).json({ error: 'Invalid date format' });
+    // Normalize the target to UTC start/end of that ISO date
+    const y = targetDate.getUTCFullYear();
+    const m = targetDate.getUTCMonth();
+    const d = targetDate.getUTCDate();
+    const startOfDay = new Date(Date.UTC(y, m, d, 0, 0, 0, 0));
+    const endOfDay = new Date(Date.UTC(y, m, d, 23, 59, 59, 999));
+    console.log('[HEALTH-SUMMARY] requested date:', dateParam, 'normalized startOfDay(UTC):', startOfDay.toISOString());
+
+    const metric = await DailyMetric.findOne({ userId, date: { $gte: startOfDay, $lt: endOfDay } });
+    if (!metric) return res.status(404).json({ success: false, error: 'No metrics for that date' });
+
+    // Optionally enrich with latest HealthAggregate or user info
+    const user = await User.findById(userId);
+    const health = await HealthAggregate.findOne({ userId, date: { $gte: startOfDay, $lt: endOfDay } }).sort({ date: -1 });
+
+    const payload = {
+      user: user ? { id: user._id, steps: metric.steps, sleepHours: metric.sleepHours, heartRate: metric.heartRate, activeMins: metric.activeMins } : null,
+      health: health || null,
+      recentCheckIns: []
+    };
+
+    let insights = null;
+    try {
+      insights = await openaiService.summarizeHealthMetrics(payload);
+    } catch (err) {
+      console.error('Per-day insight generation failed:', err?.message || err);
+      insights = { summaryText: 'Insight unavailable', severityScore: 0.5, recommendedAction: 'Complete a quick check-in.' };
+    }
+
+    res.json({ success: true, data: { metric, insights } });
+  } catch (err) {
+    console.error('Health summary error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -414,13 +518,35 @@ router.get('/dashboard/:userId', async (req, res) => {
       User.findById(userId)
     ]);
 
+    // Attempt to generate a concise AI-driven health insight for the dashboard
+    let insights = null;
+    try {
+      const metricsPayload = {
+        user: user ? {
+          id: user._id,
+          steps: user.steps,
+          sleepHours: user.sleepHours,
+          sleepMins: user.sleepMins,
+          heartRate: user.heartRate,
+          activeMins: user.activeMins
+        } : null,
+        health: health || null,
+        recentCheckIns: checkIns ? checkIns.map(c => ({ type: c.type, responses: c.responses })) : []
+      };
+      insights = await openaiService.summarizeHealthMetrics(metricsPayload);
+    } catch (err) {
+      console.error('Health insight generation failed:', err?.message || err);
+      insights = { summaryText: 'Insight not available', severityScore: 0.5, recommendedAction: 'Complete a quick check-in.' };
+    }
+
     res.json({
       success: true,
       data: {
         recentCheckIns: checkIns,
         recentVoiceCalls: signals,
         healthStatus: health || { anomalyScore: 0, distressFlag: false },
-        user: user || { name: 'Guest User' }
+        user: user || { name: 'Guest User' },
+        insights
       }
     });
   } catch (error) {

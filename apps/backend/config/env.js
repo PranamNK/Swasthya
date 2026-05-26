@@ -2,7 +2,8 @@ require('dotenv').config();
 
 const requiredEnvVars = [
   'FIREBASE_PROJECT_ID',
-  'GEMINI_API_KEY',
+  // prefer GEMMA_API_KEY but fall back to GEMINI_API_KEY for compatibility
+  // 'GEMMA_API_KEY',
   'MONGODB_URI'
 ];
 
@@ -22,6 +23,9 @@ const env = {
   },
   gemini: {
     key: process.env.GEMINI_API_KEY,
+  },
+  gemma: {
+    key: process.env.GEMMA_API_KEY || process.env.GEMINI_API_KEY,
   },
   azureOpenAI: {
     endpoint: process.env.AZURE_OPENAI_ENDPOINT,

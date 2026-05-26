@@ -246,7 +246,7 @@ export default function BreathingTools() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#fafaf3',
+    backgroundColor: '#FFF7F8',
   },
   header: {
     flexDirection: 'row',
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 64,
     paddingHorizontal: 16,
-    backgroundColor: '#fafaf3',
+    backgroundColor: '#FFF7F8',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(195, 200, 187, 0.2)',
   },
@@ -267,8 +267,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
+    fontFamily: 'PlusJakartaSans-Regular',
     fontWeight: 'bold',
-    color: '#466736',
+    color: '#E89AAE',
   },
   notificationButton: {
     width: 40,
@@ -289,11 +290,13 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontSize: 26,
+    fontFamily: 'PlusJakartaSans-Regular',
     fontWeight: '700',
-    color: '#1a1c18',
+    color: '#2B2B2B',
   },
   subtitleText: {
     fontSize: 14,
+    fontFamily: 'PlusJakartaSans-Regular',
     color: '#43483e',
     marginTop: 2,
   },
@@ -309,18 +312,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     paddingVertical: 10,
     borderRadius: 99,
-    backgroundColor: '#e8e9e2',
+    backgroundColor: '#FFFDFD',
   },
   categoryButtonActive: {
-    backgroundColor: '#466736',
+    backgroundColor: '#E89AAE',
   },
   categoryText: {
     fontSize: 14,
+    fontFamily: 'PlusJakartaSans-Regular',
     fontWeight: '600',
     color: '#43483e',
   },
   categoryTextActive: {
-    color: '#fafaf3',
+    color: '#FFF7F8',
   },
   recommendedSection: {
     marginBottom: 24,
@@ -333,13 +337,15 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
+    fontFamily: 'PlusJakartaSans-Regular',
     fontWeight: '700',
-    color: '#1a1c18',
+    color: '#2B2B2B',
   },
   viewAllText: {
     fontSize: 13,
+    fontFamily: 'PlusJakartaSans-Regular',
     fontWeight: '700',
-    color: '#466736',
+    color: '#E89AAE',
   },
   recommendedContent: {
     gap: 16,
@@ -354,7 +360,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 8,
     position: 'relative',
-    backgroundColor: '#e8e9e2',
+    backgroundColor: '#FFFDFD',
   },
   trackImage: {
     width: '100%',
@@ -375,11 +381,13 @@ const styles = StyleSheet.create({
   },
   trackTitle: {
     fontSize: 15,
+    fontFamily: 'PlusJakartaSans-Regular',
     fontWeight: '700',
-    color: '#1a1c18',
+    color: '#2B2B2B',
   },
   trackMeta: {
     fontSize: 12,
+    fontFamily: 'PlusJakartaSans-Regular',
     color: '#73796d',
     marginTop: 2,
   },
@@ -405,11 +413,13 @@ const styles = StyleSheet.create({
   },
   breathingTitle: {
     fontSize: 16,
+    fontFamily: 'PlusJakartaSans-Regular',
     fontWeight: '700',
-    color: '#1a1c18',
+    color: '#2B2B2B',
   },
   breathingSubtitle: {
     fontSize: 12,
+    fontFamily: 'PlusJakartaSans-Regular',
     color: '#73796d',
   },
   breathingVisualContainer: {
@@ -430,10 +440,10 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#bde4a7',
+    backgroundColor: '#F6C7D2',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#466736',
+    shadowColor: '#E89AAE',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -441,11 +451,12 @@ const styles = StyleSheet.create({
   },
   breathingPaceText: {
     fontSize: 15,
+    fontFamily: 'PlusJakartaSans-Regular',
     fontWeight: '700',
-    color: '#062100',
+    color: '#2B2B2B',
   },
   startExerciseButton: {
-    backgroundColor: '#466736',
+    backgroundColor: '#E89AAE',
     borderRadius: 12,
     paddingVertical: 14,
     flexDirection: 'row',
@@ -453,9 +464,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   startExerciseText: {
-    color: '#fafaf3',
+    color: '#FFF7F8',
     fontWeight: '700',
     fontSize: 15,
+    fontFamily: 'PlusJakartaSans-Regular',
   },
   btnIcon: {
     marginRight: 6,
@@ -494,11 +506,13 @@ const styles = StyleSheet.create({
   },
   miniPlayerTitle: {
     fontSize: 14,
+    fontFamily: 'PlusJakartaSans-Regular',
     fontWeight: '700',
-    color: '#1a1c18',
+    color: '#2B2B2B',
   },
   miniPlayerStatus: {
     fontSize: 12,
+    fontFamily: 'PlusJakartaSans-Regular',
     color: '#73796d',
     marginTop: 2,
   },
@@ -511,7 +525,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#e8e9e2',
+    backgroundColor: '#FFFDFD',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -520,7 +534,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     height: 3,
-    backgroundColor: '#466736',
+    backgroundColor: '#E89AAE',
     borderRadius: 99,
   },
   bottomNav: {
@@ -550,7 +564,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   navItemActive: {
-    backgroundColor: '#c7eeb0',
+    backgroundColor: '#F9E3E8',
     borderRadius: 99,
     paddingHorizontal: 18,
     paddingVertical: 4,
@@ -558,12 +572,13 @@ const styles = StyleSheet.create({
   },
   navText: {
     fontSize: 10,
+    fontFamily: 'PlusJakartaSans-Regular',
     color: '#79747E',
     marginTop: 2,
     fontWeight: '500',
   },
   navTextActive: {
-    color: '#062100',
+    color: '#2B2B2B',
     fontWeight: 'bold',
   },
 });

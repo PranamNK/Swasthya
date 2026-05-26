@@ -15,59 +15,10 @@ import { api } from '../utils/api';
 
 const { width } = Dimensions.get('window');
 
-// Custom Slider component replacing the deprecated react-native Slider
-const CustomSlider = ({ 
-  value, 
-  onValueChange, 
-  activeColor 
-}: { 
-  value: number; 
-  onValueChange: (val: number) => void; 
-  activeColor: string; 
-}) => {
-  const handleDecrease = () => {
-    onValueChange(Math.max(0, value - 10));
-  };
-
-  const handleIncrease = () => {
-    onValueChange(Math.min(100, value + 10));
-  };
-
-  return (
-    <View style={styles.sliderContainerRow}>
-      <TouchableOpacity 
-        style={styles.adjustButton} 
-        onPress={handleDecrease}
-        activeOpacity={0.7}
-      >
-        <MaterialIcons name="remove" size={16} color={activeColor} />
-      </TouchableOpacity>
-      
-      <View style={styles.sliderTrackBackground}>
-        <View style={[styles.sliderTrackFilled, { width: `${value}%`, backgroundColor: activeColor }]} />
-        <View style={[styles.sliderThumb, { left: `${value}%`, borderColor: activeColor }]} />
-      </View>
-
-      <TouchableOpacity 
-        style={styles.adjustButton} 
-        onPress={handleIncrease}
-        activeOpacity={0.7}
-      >
-        <MaterialIcons name="add" size={16} color={activeColor} />
-      </TouchableOpacity>
-    </View>
-  );
-};
-
 export default function CalmWaveHome() {
   const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  
-  // Quick check-in slider states
-  const [sleepQuality, setSleepQuality] = useState(80);
-  const [energy, setEnergy] = useState(50);
-  const [focus, setFocus] = useState(90);
 
   useEffect(() => {
     loadDashboard();
@@ -91,92 +42,101 @@ export default function CalmWaveHome() {
     }
   };
 
-  const handleLogout = async () => {
-    await removeUser();
-    router.replace('/otp-login');
-  };
-
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#466736" />
+        <ActivityIndicator size="large" color="#E89AAE" />
       </View>
     );
   }
 
-  // Calculate wellness score based on latest anomaly score
-  // If anomaly score is high, wellness is low.
   const anomalyScore = data?.healthStatus?.anomalyScore || 0.16;
   const wellnessScore = Math.round(100 - (anomalyScore * 100));
 
-  // Determine wellness rating text
-  let wellnessRating = "Optimal";
-  if (wellnessScore < 50) wellnessRating = "Critical Needs";
-  else if (wellnessScore < 75) wellnessRating = "Mild Stress";
-
   return (
     <View style={styles.outerContainer}>
-      {/* Top App Bar */}
-      <View style={styles.header}>
-        <View style={styles.headerTitleContainer}>
-          <MaterialIcons name="spa" size={24} color="#466736" style={styles.logoIcon} />
-          <Text style={styles.headerTitle}>Swasthya</Text>
-        </View>
-        <TouchableOpacity style={styles.notificationButton}>
-          <MaterialIcons name="notifications" size={22} color="#466736" />
-        </TouchableOpacity>
-      </View>
+      {/* Background Leaves */}
+      <MaterialIcons name="eco" size={160} color="#F9E3E8" style={[styles.bgLeaf, { top: -20, right: -40, transform: [{ rotate: '45deg' }] }]} />
+      <MaterialIcons name="eco" size={140} color="#F9E3E8" style={[styles.bgLeaf, { bottom: 100, left: -40, transform: [{ rotate: '-135deg' }] }]} />
 
       <ScrollView 
         style={styles.container} 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Greeting Section */}
-        <View style={styles.greetingContainer}>
-          <Text style={styles.greetingText}>Good evening, {data?.user?.name?.split(' ')[0] || 'Aditi'}</Text>
-          <Text style={styles.subGreetingText}>Here's how you're doing today.</Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greetingText}>Good morning,</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.nameText}>{data?.user?.name ? data.user.name.split(' ')[0] : 'Swasthya'}</Text>
+              <MaterialIcons name="eco" size={24} color="#F6C7D2" style={{ marginLeft: 6 }} />
+            </View>
+            <Text style={styles.subGreetingText}>You're not alone.</Text>
+            <Text style={styles.subGreetingText}>We're here with you, always.</Text>
+          </View>
+          <TouchableOpacity style={styles.notificationButton}>
+            <MaterialIcons name="notifications-none" size={28} color="#2B2B2B" />
+          </TouchableOpacity>
         </View>
 
-        {/* Wellness Score Circular Indicator */}
+        {/* Huge Wellness Circle */}
         <View style={styles.wellnessRingSection}>
           <View style={styles.wellnessRingOuter}>
             <View style={styles.wellnessRingInner}>
-              <Text style={styles.wellnessScoreNumber}>{wellnessScore}</Text>
               <Text style={styles.wellnessScoreLabel}>WELLNESS SCORE</Text>
+              <Text style={styles.wellnessScoreNumber}>{wellnessScore}</Text>
+              <Text style={styles.wellnessScoreMessage}>You're doing great ♥</Text>
             </View>
           </View>
+        </View>
+
+        {/* Check-in Prompt Box */}
+        <View style={styles.checkinCard}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.checkinTitle}>How are you feeling today?</Text>
+            <Text style={styles.checkinSubtitle}>A small check-in can make a big difference.</Text>
+            <TouchableOpacity 
+              style={styles.checkinButton}
+              onPress={() => router.push('/micro-checkin')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.checkinBtnText}>Start Check-in</Text>
+              <MaterialIcons name="chevron-right" size={20} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+          <MaterialIcons name="eco" size={100} color="#F9E3E8" style={{ position: 'absolute', bottom: -20, right: -20, transform: [{ rotate: '-30deg' }] }} />
         </View>
 
         {/* Body Signals Grid */}
         <View style={styles.gridContainer}>
           {/* Steps */}
-          <View style={styles.glassCard}>
+          <TouchableOpacity style={styles.glassCard} activeOpacity={0.7}>
             <View style={styles.cardHeader}>
-              <Ionicons name="walk" size={16} color="#3E6187" />
+              <Ionicons name="walk" size={16} color="#E89AAE" />
               <Text style={styles.cardHeaderLabel}>Steps</Text>
             </View>
             <Text style={styles.cardValueText}>
               {data?.user?.steps !== undefined ? data.user.steps.toLocaleString() : '6,420'}
             </Text>
-          </View>
+          </TouchableOpacity>
 
           {/* Active Mins */}
-          <View style={styles.glassCard}>
+          <TouchableOpacity style={styles.glassCard} activeOpacity={0.7}>
             <View style={styles.cardHeader}>
-              <MaterialIcons name="bolt" size={16} color="#466736" />
+              <MaterialIcons name="bolt" size={16} color="#E89AAE" />
               <Text style={styles.cardHeaderLabel}>Active Mins</Text>
             </View>
             <Text style={styles.cardValueText}>
               {data?.user?.activeMins !== undefined ? data.user.activeMins : 45}
               <Text style={styles.cardValueSubText}>m</Text>
             </Text>
-          </View>
+          </TouchableOpacity>
 
           {/* Sleep */}
-          <View style={styles.glassCard}>
+          <TouchableOpacity style={styles.glassCard} activeOpacity={0.7}>
             <View style={styles.cardHeader}>
-              <MaterialIcons name="bedtime" size={16} color="#476271" />
+              <MaterialIcons name="bedtime" size={16} color="#E89AAE" />
               <Text style={styles.cardHeaderLabel}>Sleep</Text>
             </View>
             <Text style={styles.cardValueText}>
@@ -185,26 +145,26 @@ export default function CalmWaveHome() {
               {data?.user?.sleepMins !== undefined ? data.user.sleepMins : 20}
               <Text style={styles.cardValueSubText}>m</Text>
             </Text>
-          </View>
+          </TouchableOpacity>
 
           {/* Heart Rate */}
-          <View style={styles.glassCard}>
+          <TouchableOpacity style={styles.glassCard} activeOpacity={0.7}>
             <View style={styles.cardHeader}>
-              <MaterialIcons name="favorite" size={16} color="#ba1a1a" />
+              <MaterialIcons name="favorite" size={16} color="#E89AAE" />
               <Text style={styles.cardHeaderLabel}>Heart Rate</Text>
             </View>
             <Text style={styles.cardValueText}>
               {data?.user?.heartRate !== undefined ? data.user.heartRate : 72}
               <Text style={styles.cardValueSubText}>bpm</Text>
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* 7-Day Mood Trend */}
         <View style={styles.trendSection}>
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>7-day Mood Trend</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => alert('Trend details coming soon!')}>
               <MaterialIcons name="more-vert" size={20} color="#73796d" />
             </TouchableOpacity>
           </View>
@@ -231,8 +191,8 @@ export default function CalmWaveHome() {
             </View>
             {/* Bar 5 */}
             <View style={styles.chartBarColumn}>
-              <View style={[styles.chartBarFilled, { height: '95%', backgroundColor: '#466736' }]} />
-              <Text style={[styles.chartBarLabel, { color: '#466736', fontWeight: 'bold' }]}>F</Text>
+              <View style={[styles.chartBarFilled, { height: '95%', backgroundColor: '#E89AAE' }]} />
+              <Text style={[styles.chartBarLabel, { color: '#E89AAE', fontWeight: 'bold' }]}>F</Text>
             </View>
             {/* Bar 6 */}
             <View style={styles.chartBarColumn}>
@@ -248,10 +208,10 @@ export default function CalmWaveHome() {
         </View>
 
         {/* Last Call Summary Card */}
-        <View style={styles.voiceSummaryCard}>
+        <TouchableOpacity style={styles.voiceSummaryCard} activeOpacity={0.7}>
           <View style={styles.voiceHeaderRow}>
             <View style={styles.voiceAvatarContainer}>
-              <MaterialIcons name="psychology" size={24} color="#466736" />
+              <MaterialIcons name="psychology" size={24} color="#E89AAE" />
             </View>
             <View>
               <Text style={styles.voiceTitle}>Last Voice Summary</Text>
@@ -260,14 +220,14 @@ export default function CalmWaveHome() {
           </View>
           
           <View style={styles.tagsContainer}>
-            <View style={[styles.tag, { backgroundColor: '#cae7f8' }]}>
-              <Text style={[styles.tagText, { color: '#001e2b' }]}>Restful Sleep</Text>
+            <View style={[styles.tag, { backgroundColor: '#F9E3E8' }]}>
+              <Text style={[styles.tagText, { color: '#2B2B2B' }]}>Restful Sleep</Text>
             </View>
-            <View style={[styles.tag, { backgroundColor: '#bde4a7' }]}>
-              <Text style={[styles.tagText, { color: '#062100' }]}>Calm</Text>
+            <View style={[styles.tag, { backgroundColor: '#F6C7D2' }]}>
+              <Text style={[styles.tagText, { color: '#2B2B2B' }]}>Calm</Text>
             </View>
-            <View style={[styles.tag, { backgroundColor: '#afd2fe' }]}>
-              <Text style={[styles.tagText, { color: '#001d36' }]}>Low Anxiety</Text>
+            <View style={[styles.tag, { backgroundColor: '#FFFDFD', borderWidth: 1, borderColor: '#F9E3E8' }]}>
+              <Text style={[styles.tagText, { color: '#2B2B2B' }]}>Low Anxiety</Text>
             </View>
           </View>
 
@@ -280,93 +240,33 @@ export default function CalmWaveHome() {
               <View style={[styles.progressBarFilled, { width: `${anomalyScore * 100}%` }]} />
             </View>
           </View>
-        </View>
-
-        {/* Quick Check-in Sliders */}
-        <View style={styles.slidersSection}>
-          <Text style={styles.sectionTitle}>Quick Check-in</Text>
-          
-          {/* Sleep Quality */}
-          <View style={styles.sliderCard}>
-            <View style={styles.sliderLabelRow}>
-              <Text style={styles.sliderLabel}>Sleep Quality</Text>
-              <Text style={[styles.sliderValueText, { color: '#466736' }]}>
-                {sleepQuality > 75 ? 'Well Rested' : sleepQuality > 40 ? 'Moderate' : 'Exhausted'}
-              </Text>
-            </View>
-            <CustomSlider
-              value={sleepQuality}
-              onValueChange={setSleepQuality}
-              activeColor="#466736"
-            />
-          </View>
-
-          {/* Energy */}
-          <View style={styles.sliderCard}>
-            <View style={styles.sliderLabelRow}>
-              <Text style={styles.sliderLabel}>Energy</Text>
-              <Text style={[styles.sliderValueText, { color: '#3E6187' }]}>
-                {energy > 75 ? 'Vibrant' : energy > 40 ? 'Moderate' : 'Fatigued'}
-              </Text>
-            </View>
-            <CustomSlider
-              value={energy}
-              onValueChange={setEnergy}
-              activeColor="#3E6187"
-            />
-          </View>
-
-          {/* Focus */}
-          <View style={styles.sliderCard}>
-            <View style={styles.sliderLabelRow}>
-              <Text style={styles.sliderLabel}>Focus</Text>
-              <Text style={[styles.sliderValueText, { color: '#476271' }]}>
-                {focus > 75 ? 'Sharp' : focus > 40 ? 'Moderate' : 'Distracted'}
-              </Text>
-            </View>
-            <CustomSlider
-              value={focus}
-              onValueChange={setFocus}
-              activeColor="#476271"
-            />
-          </View>
-        </View>
-
-        {/* Mood trigger navigation button */}
-        <TouchableOpacity 
-          style={styles.microCheckinButton}
-          onPress={() => router.push('/micro-checkin')}
-        >
-          <Text style={styles.microCheckinText}>Log Somatic Check-In</Text>
-          <MaterialIcons name="edit" size={16} color="#fafaf3" />
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Bottom Navigation Bar */}
-      <View style={styles.bottomNav}>
-        {/* Analytics (Active) */}
-        <TouchableOpacity style={[styles.navItem, styles.navItemActive]} onPress={() => {}}>
-          <MaterialIcons name="analytics" size={24} color="#062100" />
-          <Text style={[styles.navText, styles.navTextActive]}>Analytics</Text>
-        </TouchableOpacity>
-
-        {/* Calm Waves */}
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/breathing-tools')}>
-          <MaterialIcons name="waves" size={24} color="#79747E" />
-          <Text style={styles.navText}>Calm Waves</Text>
-        </TouchableOpacity>
-
-        {/* Chat */}
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/swasthya-chat')}>
-          <MaterialIcons name="chat-bubble" size={24} color="#79747E" />
-          <Text style={styles.navText}>Chat</Text>
-        </TouchableOpacity>
-
-        {/* Profile */}
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/profile')}>
-          <MaterialIcons name="person" size={24} color="#79747E" />
-          <Text style={styles.navText}>Profile</Text>
-        </TouchableOpacity>
+      {/* Floating Bottom Nav */}
+      <View style={styles.bottomNavContainer}>
+        <View style={styles.bottomNav}>
+          <TouchableOpacity style={styles.navItem} onPress={() => {}}>
+            <MaterialIcons name="home" size={26} color="#E89AAE" />
+            <Text style={[styles.navText, { color: '#E89AAE' }]}>Home</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => {}}>
+            <MaterialIcons name="bar-chart" size={26} color="#D9D9D9" />
+            <Text style={styles.navText}>Insights</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => router.push('/breathing-tools')}>
+            <MaterialIcons name="waves" size={26} color="#D9D9D9" />
+            <Text style={styles.navText}>Calm</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => router.push('/swasthya-chat')}>
+            <MaterialIcons name="chat-bubble-outline" size={26} color="#D9D9D9" />
+            <Text style={styles.navText}>Chat</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => router.push('/profile')}>
+            <MaterialIcons name="person-outline" size={26} color="#D9D9D9" />
+            <Text style={styles.navText}>Profile</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -375,101 +275,258 @@ export default function CalmWaveHome() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#fafaf3',
+    backgroundColor: '#FFF7F8',
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#fafaf3',
+    backgroundColor: '#FFF7F8',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    height: 64,
-    paddingHorizontal: 16,
-    backgroundColor: '#fafaf3',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(195, 200, 187, 0.2)',
-  },
-  headerTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logoIcon: {
-    marginRight: 6,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#466736',
-    fontFamily: 'Plus Jakarta Sans',
-  },
-  notificationButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+  bgLeaf: {
+    position: 'absolute',
+    opacity: 0.6,
+    zIndex: -1,
   },
   container: {
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 100,
+    paddingTop: 60,
+    paddingHorizontal: 24,
+    paddingBottom: 120, // space for floating nav
   },
-  greetingContainer: {
-    marginBottom: 20,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 40,
   },
   greetingText: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#1a1c18',
-    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 16,
+    color: '#2B2B2B',
+    fontFamily: 'PlusJakartaSans-Medium',
+  },
+  nameText: {
+    fontSize: 32,
+    color: '#E89AAE',
+    fontFamily: 'PlusJakartaSans-Bold',
+    marginVertical: 4,
   },
   subGreetingText: {
     fontSize: 14,
-    color: '#43483e',
-    marginTop: 2,
-    fontFamily: 'Plus Jakarta Sans',
+    color: '#7B7B7B',
+    fontFamily: 'PlusJakartaSans-Regular',
+    lineHeight: 20,
+  },
+  notificationButton: {
+    padding: 8,
   },
   wellnessRingSection: {
     alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 12,
+    marginBottom: 40,
   },
   wellnessRingOuter: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    borderWidth: 10,
-    borderColor: '#e8e9e2',
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: '#FFFDFD',
     justifyContent: 'center',
     alignItems: 'center',
-    // Apply soft drop shadow
-    shadowColor: '#466736',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
-    backgroundColor: '#ffffff',
+    shadowColor: '#E89AAE',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 30,
+    elevation: 5,
+    borderWidth: 6,
+    borderColor: '#F9E3E8',
   },
   wellnessRingInner: {
     alignItems: 'center',
   },
-  wellnessScoreNumber: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: '#466736',
-  },
   wellnessScoreLabel: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#73796d',
-    letterSpacing: 1.5,
-    marginTop: 2,
+    fontSize: 10,
+    color: '#7B7B7B',
+    fontFamily: 'PlusJakartaSans-SemiBold',
+    letterSpacing: 2,
+    marginBottom: 4,
+  },
+  wellnessScoreNumber: {
+    fontSize: 64,
+    color: '#2B2B2B',
+    fontFamily: 'PlusJakartaSans-Bold',
+  },
+  wellnessScoreMessage: {
+    fontSize: 14,
+    color: '#E89AAE',
+    fontFamily: 'PlusJakartaSans-Medium',
+    marginTop: 4,
+  },
+  checkinCard: {
+    backgroundColor: '#FFFDFD',
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#E89AAE',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 2,
+    marginBottom: 32,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  checkinTitle: {
+    fontSize: 18,
+    color: '#2B2B2B',
+    fontFamily: 'PlusJakartaSans-SemiBold',
+    marginBottom: 4,
+  },
+  checkinSubtitle: {
+    fontSize: 13,
+    color: '#7B7B7B',
+    fontFamily: 'PlusJakartaSans-Regular',
+    marginBottom: 20,
+  },
+  checkinButton: {
+    backgroundColor: '#E89AAE',
+    paddingVertical: 14,
+    paddingHorizontal: 22,
+    borderRadius: 30,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    shadowColor: '#E89AAE',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  checkinBtnText: {
+    color: '#FFF',
+    fontFamily: 'PlusJakartaSans-SemiBold',
+    fontSize: 14,
+    marginRight: 4,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    color: '#2B2B2B',
+    fontFamily: 'PlusJakartaSans-SemiBold',
+  },
+  viewAllText: {
+    fontSize: 13,
+    color: '#7B7B7B',
+    fontFamily: 'PlusJakartaSans-Medium',
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 32,
+  },
+  actionItem: {
+    alignItems: 'center',
+    width: '22%',
+  },
+  actionCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFFDFD',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+    shadowColor: '#E89AAE',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+  actionText: {
+    fontSize: 11,
+    color: '#2B2B2B',
+    fontFamily: 'PlusJakartaSans-Medium',
+    textAlign: 'center',
+  },
+  activityCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFDFD',
+    padding: 16,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 1,
+    marginBottom: 20,
+  },
+  activityIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F9E3E8',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  activityTitle: {
+    fontSize: 15,
+    color: '#2B2B2B',
+    fontFamily: 'PlusJakartaSans-SemiBold',
+    marginBottom: 2,
+  },
+  activitySubtitle: {
+    fontSize: 12,
+    color: '#7B7B7B',
+    fontFamily: 'PlusJakartaSans-Regular',
+  },
+  tagBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#F3F9E3', // Very soft green/sage tint
+    borderRadius: 12,
+  },
+  tagText: {
+    color: '#4A6B3C',
+    fontSize: 12,
+    fontFamily: 'PlusJakartaSans-Medium',
+  },
+  bottomNavContainer: {
+    position: 'absolute',
+    bottom: 24,
+    left: 24,
+    right: 24,
+    alignItems: 'center',
+  },
+  bottomNav: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFDFD',
+    borderRadius: 40,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    justifyContent: 'space-between',
+    width: '100%',
+    shadowColor: '#E89AAE',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 25,
+    elevation: 10,
+    borderWidth: 1.5,
+    borderColor: '#E89AAE',
+  },
+  navItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navText: {
+    fontSize: 10,
+    color: '#D9D9D9',
+    fontFamily: 'PlusJakartaSans-Medium',
+    marginTop: 6,
   },
   gridContainer: {
     flexDirection: 'row',
@@ -480,17 +537,17 @@ const styles = StyleSheet.create({
   },
   glassCard: {
     width: '48%',
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    borderRadius: 16,
+    backgroundColor: '#FFFDFD',
+    borderRadius: 24,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 16,
+    shadowColor: '#E89AAE',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 2,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
+    borderColor: '#FFFDFD',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -498,44 +555,37 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   cardHeaderLabel: {
-    fontSize: 12,
-    color: '#43483e',
-    fontWeight: '500',
+    fontSize: 13,
+    color: '#7B7B7B',
+    fontFamily: 'PlusJakartaSans-Medium',
     marginLeft: 6,
   },
   cardValueText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1a1c18',
+    fontSize: 22,
+    color: '#2B2B2B',
+    fontFamily: 'PlusJakartaSans-Bold',
   },
   cardValueSubText: {
     fontSize: 12,
-    fontWeight: '400',
-    color: '#73796d',
+    color: '#7B7B7B',
+    fontFamily: 'PlusJakartaSans-Medium',
   },
   trendSection: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(195, 200, 187, 0.2)',
+    backgroundColor: '#FFFDFD',
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#E89AAE',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 2,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1a1c18',
   },
   chartContainer: {
     height: 120,
@@ -552,27 +602,26 @@ const styles = StyleSheet.create({
   },
   chartBarFilled: {
     width: '100%',
-    backgroundColor: 'rgba(175, 210, 254, 0.4)',
+    backgroundColor: '#F9E3E8',
     borderRadius: 4,
     minHeight: 4,
   },
   chartBarLabel: {
     fontSize: 10,
-    color: '#73796d',
+    color: '#7B7B7B',
+    fontFamily: 'PlusJakartaSans-Regular',
     marginTop: 8,
   },
   voiceSummaryCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(195, 200, 187, 0.2)',
+    backgroundColor: '#FFFDFD',
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#E89AAE',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 2,
   },
   voiceHeaderRow: {
     flexDirection: 'row',
@@ -580,22 +629,23 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   voiceAvatarContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#c7eeb0',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F9E3E8',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   voiceTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1a1c18',
+    color: '#2B2B2B',
+    fontFamily: 'PlusJakartaSans-SemiBold',
   },
   voiceSubtitle: {
     fontSize: 12,
-    color: '#73796d',
+    color: '#7B7B7B',
+    fontFamily: 'PlusJakartaSans-Regular',
   },
   tagsContainer: {
     flexDirection: 'row',
@@ -605,12 +655,8 @@ const styles = StyleSheet.create({
   },
   tag: {
     paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 99,
-  },
-  tagText: {
-    fontSize: 11,
-    fontWeight: '600',
+    paddingVertical: 6,
+    borderRadius: 12,
   },
   distressContainer: {
     marginTop: 4,
@@ -619,168 +665,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   distressLabel: {
-    fontSize: 12,
-    color: '#43483e',
+    fontSize: 13,
+    color: '#7B7B7B',
+    fontFamily: 'PlusJakartaSans-Medium',
   },
   distressValue: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#466736',
+    fontSize: 13,
+    color: '#E89AAE',
+    fontFamily: 'PlusJakartaSans-Bold',
   },
   progressBarBackground: {
     height: 6,
-    backgroundColor: '#e2e3dc',
+    backgroundColor: '#F9E3E8',
     borderRadius: 3,
     overflow: 'hidden',
   },
   progressBarFilled: {
     height: '100%',
-    backgroundColor: '#466736',
+    backgroundColor: '#E89AAE',
     borderRadius: 3,
-  },
-  slidersSection: {
-    marginBottom: 20,
-  },
-  sliderCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(195, 200, 187, 0.2)',
-  },
-  sliderLabelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  sliderLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1a1c18',
-  },
-  sliderValueText: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  sliderContainerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  adjustButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#ffffff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(195, 200, 187, 0.4)',
-    shadowColor: '#466736',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  sliderComponent: {
-    height: 20,
-  },
-  sliderTrackBackground: {
-    height: 6,
-    backgroundColor: '#e2e3dc',
-    borderRadius: 3,
-    position: 'relative',
-    marginVertical: 12,
-    flex: 1,
-    marginHorizontal: 12,
-  },
-  sliderTrackFilled: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  sliderThumb: {
-    position: 'absolute',
-    top: -5,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#ffffff',
-    borderWidth: 3,
-    marginLeft: -8,
-  },
-  microCheckinButton: {
-    backgroundColor: '#466736',
-    borderRadius: 12,
-    paddingVertical: 14,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 4,
-    shadowColor: '#466736',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  microCheckinText: {
-    color: '#fafaf3',
-    fontWeight: '700',
-    fontSize: 15,
-    marginRight: 6,
-  },
-  bottomNav: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 72,
-    backgroundColor: '#f4f4ed',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(195, 200, 187, 0.3)',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 10,
-    zIndex: 99,
-  },
-  navItem: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-  },
-  navItemActive: {
-    backgroundColor: '#c7eeb0',
-    borderRadius: 99,
-    paddingHorizontal: 18,
-    paddingVertical: 4,
-    transform: [{ scale: 0.95 }],
-  },
-  navText: {
-    fontSize: 10,
-    color: '#79747E',
-    marginTop: 2,
-    fontWeight: '500',
-  },
-  navTextActive: {
-    color: '#062100',
-    fontWeight: 'bold',
   },
 });
